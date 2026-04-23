@@ -4,7 +4,7 @@ function Navbar() {
   return (
     <header className="fixed top-4 left-1/2 z-50 w-[92%] max-w-6xl -translate-x-1/2 rounded-lg border border-cyan-700/60 bg-cyan-900/90 px-4 py-3 shadow-xl backdrop-blur-sm sm:px-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-white text-xl font-bold sm:text-2xl">Rent SaaS</h1>
+        <h1 className="text-white text-xl font-bold sm:text-2xl">HOME MANAGEMENT SERVICES</h1>
         <nav className="flex items-center gap-4 sm:gap-6">
           <>
             <div className="flex items-center justify-between gap-4">
