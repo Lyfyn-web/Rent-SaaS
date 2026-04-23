@@ -28,6 +28,12 @@ function Navbar() {
                   Services
                 </a>
                 <a
+                  href="/gallery"
+                  className="text-sm font-medium text-white transition-colors hover:text-cyan-200 sm:text-base"
+                >
+                  Gallery
+                </a>
+                <a
                   href="/contact"
                   className="text-sm font-medium text-white transition-colors hover:text-cyan-200 sm:text-base"
                 >
