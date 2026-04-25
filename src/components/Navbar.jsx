@@ -22,7 +22,7 @@ function Navbar() {
                   About
                 </a>
                 <a
-                  href="/services"
+                  href="/#services"
                   className="text-sm font-medium text-white transition-colors hover:text-cyan-200 sm:text-base"
                 >
                   Services
@@ -34,7 +34,7 @@ function Navbar() {
                   Gallery
                 </a>
                 <a
-                  href="/contact"
+                  href="/#contact"
                   className="text-sm font-medium text-white transition-colors hover:text-cyan-200 sm:text-base"
                 >
                   Contact
