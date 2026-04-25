@@ -16,7 +16,7 @@ function Navbar() {
                   Home
                 </a>
                 <a
-                  href="/about"
+                  href="/#about"
                   className="text-sm font-medium text-white transition-colors hover:text-cyan-200 sm:text-base"
                 >
                   About
