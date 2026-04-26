@@ -39,6 +39,12 @@ function Sidebar() {
                 >
                   Subscription
                 </a>
+                <a
+                  href="/logout"
+                  className="text-sm font-medium text-white transition-colors hover:text-cyan-200 sm:text-base"
+                >
+                  Logout
+                </a>
               </nav>
             </div>
           </>
