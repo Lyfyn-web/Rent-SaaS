@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }) => {
                 id: dbUserId, // Use database userId for API calls
                 name: clerkUser.fullName || clerkUser.firstName || "User",
                 email: clerkUser.primaryEmailAddress?.emailAddress || "",
-                role: "CUSTOMER",
+                role: "USER",
                 authProvider: "clerk",
               });
               setIsLoggedIn(true);
