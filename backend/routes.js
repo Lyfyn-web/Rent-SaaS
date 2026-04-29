@@ -1,16 +1,11 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
-import dotenv from 'dotenv';
-import pkg from '@prisma/client';
-const { UserRole, Decimal } = pkg;
-
-const prisma = new PrismaClient();
+import { UserRole } from '@prisma/client';
+import './env.js';
+import { prisma } from './prismaClient.js';
 
 const routes = Router();
-
-dotenv.config();
 
 routes.get('/health', (req, res) => {
     res.json({ status: 'ok' });
@@ -367,5 +362,4 @@ routes.delete('/api/delete-account', async (req, res) => {
         res.status(500).json({ error: 'Failed to delete account' });
     }
 });
-
 export { routes };

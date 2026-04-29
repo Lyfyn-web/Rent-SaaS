@@ -1,16 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { PrismaMariaDb } from '@prisma/adapter-mariadb';
-import { PrismaClient } from '@prisma/client';
+import './env.js';
 import { routes } from './routes.js';
 import jwt from 'jsonwebtoken';
+import { prisma } from './prismaClient.js';
 
-dotenv.config();
-
-const adapter = new PrismaMariaDb(process.env.DATABASE_URL);
 const app = express();
-const prisma = new PrismaClient({ adapter });
 
 const corsOptions = {
     origin: ['http://localhost:5173', 'http://localhost:3000'],
@@ -22,7 +17,7 @@ const corsOptions = {
 app.use(cors());
 app.use(express.json());
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 const PORT = process.env.PORT || 3000;
 

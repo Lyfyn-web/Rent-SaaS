@@ -28,16 +28,13 @@ import { toast } from "react-toastify";
 
 const AuthPopup = ({ isOpen, onClose, initialMode = "login" }) => {
   const [mode, setMode] = useState(initialMode);
-  const [isFlipping, setIsFlipping] = useState(false);
   void motion;
 
   if (!isOpen) return null;
 
   const switchMode = () => {
-    setIsFlipping(true);
     setTimeout(() => {
       setMode(mode === "login" ? "register" : "login");
-      setIsFlipping(false);
     }, 400);
   };
 
@@ -67,7 +64,7 @@ const AuthPopup = ({ isOpen, onClose, initialMode = "login" }) => {
               <X size={24} />
             </button>
 
-            <div className="flex min-h-[600px]">
+            <div className="flex min-h-150">
               {/* Left Side - Logo/Info Section (Sliding) */}
               <AnimatePresence mode="wait">
                 {mode === "login" ? (
@@ -77,7 +74,7 @@ const AuthPopup = ({ isOpen, onClose, initialMode = "login" }) => {
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -300, opacity: 0 }}
                     transition={{ duration: 0.4, ease: "easeInOut" }}
-                    className="hidden md:block w-1/2 bg-gradient-to-br from-cyan-600 to-cyan-700 p-8 text-white"
+                    className="hidden w-1/2 bg-linear-to-br from-cyan-600 to-cyan-700 p-8 text-white md:block"
                   >
                     <div className="flex h-full flex-col justify-between">
                       <div>
@@ -133,7 +130,7 @@ const AuthPopup = ({ isOpen, onClose, initialMode = "login" }) => {
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: -300, opacity: 0 }}
                     transition={{ duration: 0.4, ease: "easeInOut" }}
-                    className="hidden md:block w-1/2 bg-gradient-to-br from-cyan-600 to-cyan-700 p-8 text-white"
+                    className="hidden w-1/2 bg-linear-to-br from-cyan-600 to-cyan-700 p-8 text-white md:block"
                   >
                     <div className="flex h-full flex-col justify-between">
                       <div>
@@ -213,7 +210,7 @@ const AuthPopup = ({ isOpen, onClose, initialMode = "login" }) => {
 
             {/* Mobile View - Simple Stacked Layout */}
             <div className="block md:hidden">
-              <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 p-6 text-center text-white">
+              <div className="bg-linear-to-br from-cyan-600 to-cyan-700 p-6 text-center text-white">
                 <div className="mb-4 flex justify-center">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
                     <span className="text-2xl font-bold">R</span>
