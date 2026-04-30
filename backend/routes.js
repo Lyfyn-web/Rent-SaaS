@@ -1,18 +1,66 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { createRemoteJWKSet, decodeJwt, jwtVerify } from 'jose';
 import { UserRole } from '@prisma/client';
+import process from 'node:process';
 import './env.js';
 import { prisma } from './prismaClient.js';
 
 const routes = Router();
+const clerkJwksCache = new Map();
+
+const getClerkJwks = (issuer) => {
+    const normalizedIssuer = issuer.replace(/\/$/, '');
+
+    if (!clerkJwksCache.has(normalizedIssuer)) {
+        const jwksUrl = new URL(`${normalizedIssuer}/.well-known/jwks.json`);
+        clerkJwksCache.set(normalizedIssuer, createRemoteJWKSet(jwksUrl));
+    }
+
+    return clerkJwksCache.get(normalizedIssuer);
+};
+
+const verifyAuthToken = async (token) => {
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+            algorithms: ['HS256'],
+        });
+
+        return { provider: 'custom', userId: decoded.userId };
+    } catch (jwtError) {
+        const clerkPayload = decodeJwt(token);
+        const issuer = clerkPayload.iss;
+        const clerkUserId = clerkPayload.sub;
+
+        if (!issuer || !clerkUserId) {
+            throw jwtError;
+        }
+
+        await jwtVerify(token, getClerkJwks(issuer), { issuer });
+        return { provider: 'clerk', userId: clerkUserId };
+    }
+};
+
+const resolveDatabaseUserId = async ({ provider, userId }) => {
+    if (provider === 'custom') {
+        return userId;
+    }
+
+    const mappedUser = await prisma.user.findUnique({
+        where: { clerkId: userId },
+        select: { id: true },
+    });
+
+    return mappedUser?.id || null;
+};
 
 routes.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
 // Endpoint to sync/create Clerk users in your database
-routes.post('/api/clerk-user-sync', async (req, res) => {
+routes.post('/clerk-user-sync', async (req, res) => {
     try {
         const { clerkUserId, email, name } = req.body;
 
@@ -52,7 +100,7 @@ routes.post('/api/clerk-user-sync', async (req, res) => {
 });
 
 // Endpoint to get user by Clerk ID
-routes.get('/api/users/clerk/:clerkId', async (req, res) => {
+routes.get('/users/clerk/:clerkId', async (req, res) => {
     try {
         const { clerkId } = req.params;
         const user = await prisma.user.findUnique({
@@ -72,7 +120,7 @@ routes.get('/api/users/clerk/:clerkId', async (req, res) => {
 });
 
 // POST request to register a new user
-routes.post('/api/register', async (req, res) => {
+routes.post('/register', async (req, res) => {
     const { name, email, password, phone, role } = req.body;
 
     if (!email || !password) {
@@ -105,7 +153,7 @@ routes.post('/api/register', async (req, res) => {
 });
 
 // POST request to login a user
-routes.post('/api/login', async (req, res) => {
+routes.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -139,7 +187,7 @@ routes.post('/api/login', async (req, res) => {
 });
 
 //refresh token route
-routes.post('/api/refresh', async (req, res) => {
+routes.post('/refresh', async (req, res) => {
     const { refreshToken: clientRefreshToken } = req.cookies;
 
     if (!clientRefreshToken) return res.status(401).json({ error: 'Refresh token required' });
@@ -162,7 +210,7 @@ routes.post('/api/refresh', async (req, res) => {
 });
 
 // User Logout
-routes.post('/api/logout', async (req, res) => {
+routes.post('/logout', async (req, res) => {
     const { userId } = req.body;
 
     // Invalidate the refresh token
@@ -174,61 +222,59 @@ routes.post('/api/logout', async (req, res) => {
 });
 
 //user profile
-routes.get('/api/users/profile', async (req, res) => {
+routes.get('/users/profile', async (req, res) => {
     if (!req.headers.authorization) {
         return res.status(401).json({ error: 'Authorization header is missing' });
     }
     const token = req.headers.authorization.split(' ')[1];
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const authResult = await verifyAuthToken(token);
+        const databaseUserId = await resolveDatabaseUserId(authResult);
+
+        if (!databaseUserId) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
         const user = await prisma.user.findUnique({
-            where: { id: decoded.userId },
+            where: { id: databaseUserId },
             select: { id: true, name: true, email: true, phone: true, role: true },
         });
-        // console.log("Fetched user data:", user); // Add this line to debug
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
         res.json(user);
     } catch (error) {
-        console.error(error);
-        if (error.name === "TokenExpiredError") {
+        if (error.name === "TokenExpiredError" || error.code === 'ERR_JWT_EXPIRED') {
             return res.status(401).json({ error: 'Token expired. Please login again.' });
         }
+
+        if (error.name === "JsonWebTokenError" || error.code?.startsWith('ERR_JWT')) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+
+        console.error('Error fetching user profile:', error);
         res.status(401).json({ error: 'Invalid token' });
     }
 });
 
 
 // Update user profile
-routes.put('/api/users/profile', async (req, res) => {
+routes.put('/users/profile', async (req, res) => {
     if (!req.headers.authorization) {
         return res.status(401).json({ error: 'Authorization header is missing' });
     }
 
     const token = req.headers.authorization.split(' ')[1];
-    const { name, email, phone, userId } = req.body;
+    const { name, email, phone } = req.body;
 
     try {
-        let authenticatedUserId;
+        const authResult = await verifyAuthToken(token);
+        const authenticatedUserId = await resolveDatabaseUserId(authResult);
 
-        // Try to verify as JWT first
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            authenticatedUserId = decoded.userId;
-        } catch (jwtError) {
-            // If JWT fails, check if userId was provided in the request body
-            // This is for Clerk users who provide their ID in the body
-            if (userId) {
-                authenticatedUserId = userId;
-            } else {
-                console.log("Token verification failed and no userId provided:", jwtError.message);
-                return res.status(401).json({
-                    error: 'Invalid or expired token. Please log in again.'
-                });
-            }
-        }
-
-        // Ensure we have a userId
         if (!authenticatedUserId) {
-            return res.status(401).json({ error: 'User ID not found' });
+            return res.status(404).json({ error: 'User not found' });
         }
 
         // Update user profile
@@ -247,8 +293,11 @@ routes.put('/api/users/profile', async (req, res) => {
         res.json(updatedUser);
     } catch (error) {
         console.error('Error updating profile:', error);
-        if (error.name === "TokenExpiredError") {
+        if (error.name === "TokenExpiredError" || error.code === 'ERR_JWT_EXPIRED') {
             return res.status(401).json({ error: 'Token expired. Please login again.' });
+        }
+        if (error.name === "JsonWebTokenError" || error.code?.startsWith('ERR_JWT')) {
+            return res.status(401).json({ error: 'Invalid token' });
         }
         if (error.code === 'P2002') {
             return res.status(409).json({ error: 'Email already in use' });
@@ -261,7 +310,7 @@ routes.put('/api/users/profile', async (req, res) => {
 });
 
 // Define a route to handle password reset requests
-routes.post('/api/update-password', async (req, res) => {
+routes.post('/update-password', async (req, res) => {
     const { email, password, confirmPassword } = req.body;
 
     // Basic validation
@@ -307,33 +356,18 @@ routes.post('/api/update-password', async (req, res) => {
 });
 
 //function to delete account
-routes.delete('/api/delete-account', async (req, res) => {
+routes.delete('/delete-account', async (req, res) => {
     if (!req.headers.authorization) {
         return res.status(401).json({ error: 'Authorization header is missing' });
     }
 
     const token = req.headers.authorization.split(' ')[1];
-    const { userId } = req.body; // Accept userId from request body for Clerk users
-
     try {
-        let authenticatedUserId;
-
-        // Try to verify as JWT first
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            authenticatedUserId = decoded.userId;
-        } catch (jwtError) {
-            // If JWT fails, check if userId was provided in the request body
-            if (userId) {
-                authenticatedUserId = userId;
-            } else {
-                console.log("Token verification failed and no userId provided");
-                return res.status(401).json({ error: 'Invalid token' });
-            }
-        }
+        const authResult = await verifyAuthToken(token);
+        const authenticatedUserId = await resolveDatabaseUserId(authResult);
 
         if (!authenticatedUserId) {
-            return res.status(400).json({ error: 'User ID is missing' });
+            return res.status(404).json({ error: 'User not found' });
         }
 
         // Delete related records first
@@ -353,6 +387,12 @@ routes.delete('/api/delete-account', async (req, res) => {
         res.json({ message: 'Account deleted successfully.' });
     } catch (error) {
         console.error('Error deleting account:', error);
+        if (error.name === "TokenExpiredError" || error.code === 'ERR_JWT_EXPIRED') {
+            return res.status(401).json({ error: 'Token expired. Please login again.' });
+        }
+        if (error.name === "JsonWebTokenError" || error.code?.startsWith('ERR_JWT')) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
         if (error.code === 'P2003') {
             return res.status(400).json({ error: 'Cannot delete user due to foreign key constraints.' });
         }
