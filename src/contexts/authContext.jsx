@@ -65,9 +65,10 @@ export const AuthProvider = ({ children }) => {
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
+      const status = error?.response?.status;
 
       // If access token is expired
-      if (error.response.status === 403 && !originalRequest._retry) {
+      if (status === 403 && originalRequest && !originalRequest._retry) {
         originalRequest._retry = true;
 
         try {
@@ -89,7 +90,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       // If unauthorized, log out the user
-      if (error.response.status === 401) {
+      if (status === 401) {
         logout();
       }
 
@@ -116,8 +117,8 @@ export const AuthProvider = ({ children }) => {
                 const clerkName =
                   clerkUser.fullName || clerkUser.firstName || "User";
 
-                const syncResponse = await axios.post(
-                  `${import.meta.env.VITE_BASE_URL}/api/clerk-user-sync`,
+                const syncResponse = await api.post(
+                  "/api/clerk-user-sync",
                   {
                     clerkUserId: clerkUser.id,
                     email: clerkEmail,
@@ -146,6 +147,7 @@ export const AuthProvider = ({ children }) => {
                 id: dbUserId, // Use database userId for API calls
                 name: clerkUser.fullName || clerkUser.firstName || "User",
                 email: clerkUser.primaryEmailAddress?.emailAddress || "",
+                avatarUrl: clerkUser.imageUrl || "",
                 role: "USER",
                 authProvider: "clerk",
               });
@@ -198,7 +200,7 @@ export const AuthProvider = ({ children }) => {
       const response = await api.get("/api/users/profile", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      setUser(response.data);
+      setUser({ ...response.data, authProvider: "custom" });
       console.log("User set useEffect on login:", response.data);
     } catch (error) {
       console.error("Error fetching user profile:", error);

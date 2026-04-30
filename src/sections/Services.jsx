@@ -369,7 +369,7 @@ function Services() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes draw {
           0% {
             stroke-dasharray: 0 200;

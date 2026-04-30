@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { UserRole } from '@prisma/client';
+import process from 'node:process';
 import './env.js';
 import { prisma } from './prismaClient.js';
 
@@ -12,7 +13,7 @@ routes.get('/health', (req, res) => {
 });
 
 // Endpoint to sync/create Clerk users in your database
-routes.post('/api/clerk-user-sync', async (req, res) => {
+routes.post('/clerk-user-sync', async (req, res) => {
     try {
         const { clerkUserId, email, name } = req.body;
 
@@ -52,7 +53,7 @@ routes.post('/api/clerk-user-sync', async (req, res) => {
 });
 
 // Endpoint to get user by Clerk ID
-routes.get('/api/users/clerk/:clerkId', async (req, res) => {
+routes.get('/users/clerk/:clerkId', async (req, res) => {
     try {
         const { clerkId } = req.params;
         const user = await prisma.user.findUnique({
@@ -72,7 +73,7 @@ routes.get('/api/users/clerk/:clerkId', async (req, res) => {
 });
 
 // POST request to register a new user
-routes.post('/api/register', async (req, res) => {
+routes.post('/register', async (req, res) => {
     const { name, email, password, phone, role } = req.body;
 
     if (!email || !password) {
@@ -105,7 +106,7 @@ routes.post('/api/register', async (req, res) => {
 });
 
 // POST request to login a user
-routes.post('/api/login', async (req, res) => {
+routes.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -139,7 +140,7 @@ routes.post('/api/login', async (req, res) => {
 });
 
 //refresh token route
-routes.post('/api/refresh', async (req, res) => {
+routes.post('/refresh', async (req, res) => {
     const { refreshToken: clientRefreshToken } = req.cookies;
 
     if (!clientRefreshToken) return res.status(401).json({ error: 'Refresh token required' });
@@ -162,7 +163,7 @@ routes.post('/api/refresh', async (req, res) => {
 });
 
 // User Logout
-routes.post('/api/logout', async (req, res) => {
+routes.post('/logout', async (req, res) => {
     const { userId } = req.body;
 
     // Invalidate the refresh token
@@ -174,7 +175,7 @@ routes.post('/api/logout', async (req, res) => {
 });
 
 //user profile
-routes.get('/api/users/profile', async (req, res) => {
+routes.get('/users/profile', async (req, res) => {
     if (!req.headers.authorization) {
         return res.status(401).json({ error: 'Authorization header is missing' });
     }
@@ -198,7 +199,7 @@ routes.get('/api/users/profile', async (req, res) => {
 
 
 // Update user profile
-routes.put('/api/users/profile', async (req, res) => {
+routes.put('/users/profile', async (req, res) => {
     if (!req.headers.authorization) {
         return res.status(401).json({ error: 'Authorization header is missing' });
     }
@@ -261,7 +262,7 @@ routes.put('/api/users/profile', async (req, res) => {
 });
 
 // Define a route to handle password reset requests
-routes.post('/api/update-password', async (req, res) => {
+routes.post('/update-password', async (req, res) => {
     const { email, password, confirmPassword } = req.body;
 
     // Basic validation
@@ -307,7 +308,7 @@ routes.post('/api/update-password', async (req, res) => {
 });
 
 //function to delete account
-routes.delete('/api/delete-account', async (req, res) => {
+routes.delete('/delete-account', async (req, res) => {
     if (!req.headers.authorization) {
         return res.status(401).json({ error: 'Authorization header is missing' });
     }
@@ -322,7 +323,7 @@ routes.delete('/api/delete-account', async (req, res) => {
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             authenticatedUserId = decoded.userId;
-        } catch (jwtError) {
+        } catch {
             // If JWT fails, check if userId was provided in the request body
             if (userId) {
                 authenticatedUserId = userId;
