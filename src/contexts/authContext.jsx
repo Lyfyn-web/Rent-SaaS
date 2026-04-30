@@ -161,7 +161,7 @@ export const AuthProvider = ({ children }) => {
           }
         };
         getClerkToken();
-      } else if (accessToken) {
+      } else if (accessToken && !isClerkSignedIn) {
         // User is signed in with custom auth
         const getUserProfile = async () => {
           try {

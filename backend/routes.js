@@ -189,10 +189,13 @@ routes.get('/users/profile', async (req, res) => {
         // console.log("Fetched user data:", user); // Add this line to debug
         res.json(user);
     } catch (error) {
-        console.error(error);
         if (error.name === "TokenExpiredError") {
             return res.status(401).json({ error: 'Token expired. Please login again.' });
         }
+        if (error.name === "JsonWebTokenError") {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        console.error('Error fetching user profile:', error);
         res.status(401).json({ error: 'Invalid token' });
     }
 });
