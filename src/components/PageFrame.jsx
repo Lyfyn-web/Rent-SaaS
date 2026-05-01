@@ -51,7 +51,7 @@ function PageFrame({
                   <div className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
                     {metric.label}
                   </div>
-                  <div className="mt-2 text-2xl font-bold text-slate-900">
+                  <div className="mt-2 text-lg font-bold text-slate-900">
                     {metric.value}
                   </div>
                   <div className="mt-1 text-sm text-slate-500">
