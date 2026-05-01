@@ -18,6 +18,22 @@ export default function MasterNavbar({ title, user, onLogout }) {
             </div>
           </div>
 
+          {/* navigation links */}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link
+              to={"/"}
+              className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
+            >
+              Home
+            </Link>
+            <a
+              href="#settings"
+              className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
+            >
+              Settings
+            </a>
+          </nav>
+
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-2 rounded-full border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600">
               <Search className="h-4 w-4 text-slate-400" />
