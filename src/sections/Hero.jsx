@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 function Hero() {
   const [isVisible, setIsVisible] = useState(false);
@@ -102,7 +103,10 @@ function Hero() {
             isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
           }`}
         >
-          <button className="px-8 py-3 bg-cyan-600 rounded-lg font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300 hover:bg-cyan-700 hover:-translate-y-0.5">
+          <Link
+            to={"/dashboard"}
+            className="px-8 py-3 bg-cyan-600 rounded-lg font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300 hover:bg-cyan-700 hover:-translate-y-0.5"
+          >
             <span className="flex items-center gap-2">
               Get Started Free
               <svg
@@ -119,7 +123,7 @@ function Hero() {
                 />
               </svg>
             </span>
-          </button>
+          </Link>
 
           <button className="px-8 py-3 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-300">
             <span className="flex items-center gap-2">

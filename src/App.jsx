@@ -1,9 +1,9 @@
 import "./App.css";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Navbar from "./components/Navbar";
 import AuthPopup from "./components/AuthPopup";
 import Home from "./pages/Home";
+import MasterPage from "./pages/MasterPage";
 
 function ScrollToHash() {
   const location = useLocation();
@@ -34,10 +34,6 @@ function App() {
   return (
     <>
       <ScrollToHash />
-      <Navbar
-        onSignIn={() => openAuthPopup("login")}
-        onSignUp={() => openAuthPopup("register")}
-      />
       <AuthPopup
         key={authMode}
         isOpen={isAuthOpen}
@@ -46,6 +42,7 @@ function App() {
       />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/dashboard/*" element={<MasterPage />} />
       </Routes>
     </>
   );
