@@ -26,7 +26,12 @@ import {
 } from "@clerk/clerk-react";
 import { toast } from "react-toastify";
 
-const AuthPopup = ({ isOpen, onClose, initialMode = "login" }) => {
+const AuthPopup = ({
+  isOpen,
+  onClose,
+  initialMode = "login",
+  skipRedirectOnClose = false,
+}) => {
   const [mode, setMode] = useState(initialMode);
   void motion;
 
@@ -191,7 +196,11 @@ const AuthPopup = ({ isOpen, onClose, initialMode = "login" }) => {
                     transition={{ duration: 0.4, ease: "easeInOut" }}
                     className="w-full md:w-1/2"
                   >
-                    <LoginForm switchMode={switchMode} onClose={onClose} />
+                    <LoginForm
+                      switchMode={switchMode}
+                      onClose={onClose}
+                      skipRedirect={skipRedirectOnClose}
+                    />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -247,7 +256,7 @@ const AuthPopup = ({ isOpen, onClose, initialMode = "login" }) => {
   );
 };
 
-const LoginForm = ({ switchMode, onClose }) => {
+const LoginForm = ({ switchMode, onClose, skipRedirect = false }) => {
   const { login, setAccessToken, api } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -274,10 +283,11 @@ const LoginForm = ({ switchMode, onClose }) => {
 
           setTimeout(() => {
             onClose();
-          }, 2000);
-
-          const from = location.state?.from?.pathname || "/";
-          navigate(from, { replace: true });
+            if (!skipRedirect) {
+              const from = location.state?.from?.pathname || "/";
+              navigate(from, { replace: true });
+            }
+          }, 500);
 
           return "Login successful!";
         },

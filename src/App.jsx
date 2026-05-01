@@ -25,9 +25,11 @@ function ScrollToHash() {
 function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
+  const [skipRedirectOnClose, setSkipRedirectOnClose] = useState(false);
 
-  const openAuthPopup = (mode) => {
+  const openAuthPopup = (mode, skipRedirect = false) => {
     setAuthMode(mode);
+    setSkipRedirectOnClose(skipRedirect);
     setIsAuthOpen(true);
   };
 
@@ -35,12 +37,21 @@ function App() {
   useEffect(() => {
     const handler = (e) => {
       const mode = e?.detail?.mode || "login";
-      openAuthPopup(mode);
+      const skipRedirect = e?.detail?.skipRedirect || false;
+      openAuthPopup(mode, skipRedirect);
     };
 
     window.addEventListener("open-auth", handler);
     return () => window.removeEventListener("open-auth", handler);
   }, []);
+
+  const handleAuthClose = () => {
+    setIsAuthOpen(false);
+    // Only reset if not skipping redirect
+    if (!skipRedirectOnClose) {
+      setSkipRedirectOnClose(false);
+    }
+  };
 
   return (
     <>
@@ -49,11 +60,15 @@ function App() {
         key={authMode}
         isOpen={isAuthOpen}
         initialMode={authMode}
-        onClose={() => setIsAuthOpen(false)}
+        onClose={handleAuthClose}
+        skipRedirectOnClose={skipRedirectOnClose}
       />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/dashboard/*" element={<MasterPage />} />
+        <Route
+          path="/dashboard/*"
+          element={<MasterPage onOpenAuth={openAuthPopup} />}
+        />
       </Routes>
     </>
   );

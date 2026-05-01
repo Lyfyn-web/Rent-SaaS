@@ -1,18 +1,14 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { UserButton } from "@clerk/clerk-react";
 import { useAuth } from "../contexts/authContext";
 
-function Navbar({ onSignIn, onSignUp }) {
-  const { isLoggedIn, user, logout } = useAuth();
-  const username = typeof user === "object" && user?.name ? user.name : "User";
-  const avatarSeed = encodeURIComponent(
-    user?.email || user?.id || user?.name || "guest-user",
-  );
+function Navbar() {
+  const { isLoggedIn, user, userId, userName, userAvatar, logout } = useAuth();
+  const username =
+    userName || (typeof user === "object" && user?.name ? user.name : "User");
   const avatarSrc =
-    user?.authProvider === "clerk" && user?.avatarUrl
-      ? user.avatarUrl
-      : `https://picsum.photos/seed/${avatarSeed}/72/72`;
+    userAvatar ||
+    `https://picsum.photos/seed/${encodeURIComponent(userId || user?.id || userName || "guest-user")}/72/72`;
 
   return (
     <header className="fixed top-4 left-1/2 z-50 w-[92%] max-w-6xl -translate-x-1/2 rounded-lg border border-cyan-700/60 bg-cyan-900/90 px-4 py-3 shadow-xl backdrop-blur-sm sm:px-6">
@@ -90,14 +86,26 @@ function Navbar({ onSignIn, onSignUp }) {
             <>
               <button
                 type="button"
-                onClick={onSignIn}
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent("open-auth", {
+                      detail: { mode: "login" },
+                    }),
+                  )
+                }
                 className="rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10 sm:px-4"
               >
                 Sign In
               </button>
               <button
                 type="button"
-                onClick={onSignUp}
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent("open-auth", {
+                      detail: { mode: "register" },
+                    }),
+                  )
+                }
                 className="rounded-lg bg-cyan-500 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-400 sm:px-5"
               >
                 Sign Up
@@ -110,9 +118,6 @@ function Navbar({ onSignIn, onSignUp }) {
   );
 }
 
-Navbar.propTypes = {
-  onSignIn: PropTypes.func.isRequired,
-  onSignUp: PropTypes.func.isRequired,
-};
+Navbar.propTypes = {};
 
 export default Navbar;

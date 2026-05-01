@@ -2,9 +2,15 @@ import React from "react";
 import PropTypes from "prop-types";
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/authContext";
 
 export default function MasterNavbar({ title, user, isLoggedIn, onLogout }) {
-  const username = typeof user === "object" && user?.name ? user.name : "User";
+  const { userName, isLoggedIn: ctxLoggedIn, logout } = useAuth();
+  const username =
+    userName || (typeof user === "object" && user?.name ? user.name : "User");
+  const effectiveLoggedIn =
+    typeof ctxLoggedIn === "boolean" ? ctxLoggedIn : isLoggedIn;
+  const effectiveLogout = onLogout || logout;
 
   return (
     <header className="sticky top-4 z-30 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -44,10 +50,10 @@ export default function MasterNavbar({ title, user, isLoggedIn, onLogout }) {
               />
             </div>
 
-            {isLoggedIn ? (
+            {effectiveLoggedIn ? (
               <button
                 type="button"
-                onClick={onLogout}
+                onClick={effectiveLogout}
                 className="rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50"
               >
                 Logout
@@ -59,7 +65,7 @@ export default function MasterNavbar({ title, user, isLoggedIn, onLogout }) {
                   onClick={() =>
                     window.dispatchEvent(
                       new CustomEvent("open-auth", {
-                        detail: { mode: "login" },
+                        detail: { mode: "login", skipRedirect: true },
                       }),
                     )
                   }
@@ -72,7 +78,7 @@ export default function MasterNavbar({ title, user, isLoggedIn, onLogout }) {
                   onClick={() =>
                     window.dispatchEvent(
                       new CustomEvent("open-auth", {
-                        detail: { mode: "register" },
+                        detail: { mode: "register", skipRedirect: true },
                       }),
                     )
                   }

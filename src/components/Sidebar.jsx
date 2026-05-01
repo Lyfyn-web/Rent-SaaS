@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import React from "react";
 import { LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { useAuth } from "../contexts/authContext";
 
 export default function Sidebar({
   navItems,
@@ -12,6 +13,12 @@ export default function Sidebar({
   isLoggedIn,
   handleLogout,
 }) {
+  const { userName, isLoggedIn: ctxLoggedIn, logout } = useAuth();
+  const displayName =
+    userName || (typeof user === "object" && user?.name ? user.name : "User");
+  const effectiveLoggedIn =
+    typeof ctxLoggedIn === "boolean" ? ctxLoggedIn : isLoggedIn;
+  const effectiveLogout = handleLogout || logout;
   return (
     <aside
       className={`fixed inset-y-0 left-0 z-40 hidden border-r border-cyan-100 bg-white/85 shadow-[10px_0_40px_-24px_rgba(8,145,178,0.45)] backdrop-blur-xl transition-all duration-300 lg:flex ${
@@ -55,7 +62,7 @@ export default function Sidebar({
             Signed in
           </div>
           <div className="mt-2 text-sm font-semibold text-slate-900">
-            {typeof user === "object" && user?.name ? user.name : "User"}
+            {displayName}
           </div>
           {sidebarExpanded ? (
             <div className="mt-1 text-sm text-slate-500">
@@ -102,10 +109,10 @@ export default function Sidebar({
         </nav>
 
         <div className="mt-4 border-t border-cyan-100 pt-10">
-          {isLoggedIn ? (
+          {effectiveLoggedIn ? (
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={effectiveLogout}
               className="flex w-full items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 px-3 py-3 text-left text-rose-700 transition-colors hover:bg-rose-100"
             >
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-rose-600 shadow-sm">
@@ -126,7 +133,9 @@ export default function Sidebar({
                 type="button"
                 onClick={() =>
                   window.dispatchEvent(
-                    new CustomEvent("open-auth", { detail: { mode: "login" } }),
+                    new CustomEvent("open-auth", {
+                      detail: { mode: "login", skipRedirect: true },
+                    }),
                   )
                 }
                 className="rounded-md px-3 py-2 text-sm font-medium text-cyan-700 border border-cyan-100 bg-cyan-50 hover:bg-cyan-100"
@@ -138,7 +147,7 @@ export default function Sidebar({
                 onClick={() =>
                   window.dispatchEvent(
                     new CustomEvent("open-auth", {
-                      detail: { mode: "register" },
+                      detail: { mode: "register", skipRedirect: true },
                     }),
                   )
                 }
