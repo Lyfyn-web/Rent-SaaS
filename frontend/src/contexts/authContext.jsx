@@ -188,7 +188,19 @@ export const AuthProvider = ({ children }) => {
   }, [isClerkLoaded, isClerkSignedIn, clerkUser, accessToken, getToken, api]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-cyan-50">
+        <div className="text-center">
+          <div className="mb-4 inline-flex h-16 w-16 animate-spin rounded-full border-4 border-cyan-200 border-t-cyan-600"></div>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Initializing...
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Please wait while we set up your session
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const login = async (accessToken) => {
@@ -220,18 +232,47 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Computed user properties for easier consumption across the app
+  const userId = user?.id || null;
+  const userName = user?.name || "";
+  const userEmail = user?.email || "";
+  const userPhone = user?.phone || "";
+  const userRole = user?.role || "USER";
+  // Prefer an explicit avatar URL; fall back to a seeded Picsum image for stability
+  const userAvatar =
+    user?.avatarUrl ||
+    (userId
+      ? `https://picsum.photos/seed/${encodeURIComponent(userId)}/200/200`
+      : null);
+  const userAuthProvider = user?.authProvider || null;
+
   return (
     <AuthContext.Provider
       value={{
+        // raw state
         isLoggedIn,
+        loading,
+        accessToken,
+
+        // full user object and setters
         user,
         setUser,
+
+        // computed convenience fields
+        userId,
+        userName,
+        userEmail,
+        userPhone,
+        userRole,
+        userAvatar,
+        userAuthProvider,
+
+        // methods + api
+        api,
         login,
         logout,
         refreshAccessToken,
-        accessToken,
         setAccessToken,
-        api,
       }}
     >
       {children}

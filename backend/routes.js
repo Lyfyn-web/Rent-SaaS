@@ -309,6 +309,50 @@ routes.put('/users/profile', async (req, res) => {
     }
 });
 
+// Update user profile (PATCH alias used by frontend)
+routes.patch('/users/profile', async (req, res) => {
+    if (!req.headers.authorization) {
+        return res.status(401).json({ error: 'Authorization header is missing' });
+    }
+
+    const token = req.headers.authorization.split(' ')[1];
+    const { name, email, phone } = req.body;
+
+    try {
+        const authResult = await verifyAuthToken(token);
+        const authenticatedUserId = await resolveDatabaseUserId(authResult);
+
+        if (!authenticatedUserId) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const updatedUserData = { name, email, phone };
+
+        const updatedUser = await prisma.user.update({
+            where: { id: authenticatedUserId },
+            data: updatedUserData,
+            select: { id: true, name: true, email: true, phone: true, role: true },
+        });
+
+        res.json(updatedUser);
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        if (error.name === "TokenExpiredError" || error.code === 'ERR_JWT_EXPIRED') {
+            return res.status(401).json({ error: 'Token expired. Please login again.' });
+        }
+        if (error.name === "JsonWebTokenError" || error.code?.startsWith('ERR_JWT')) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        if (error.code === 'P2002') {
+            return res.status(409).json({ error: 'Email already in use' });
+        }
+        if (error.code === 'P2025') {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(500).json({ error: 'Failed to update profile' });
+    }
+});
+
 // Define a route to handle password reset requests
 routes.post('/update-password', async (req, res) => {
     const { email, password, confirmPassword } = req.body;
@@ -380,6 +424,52 @@ routes.delete('/delete-account', async (req, res) => {
         });
 
         // Delete the user account
+        await prisma.user.delete({
+            where: { id: authenticatedUserId },
+        });
+
+        res.json({ message: 'Account deleted successfully.' });
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        if (error.name === "TokenExpiredError" || error.code === 'ERR_JWT_EXPIRED') {
+            return res.status(401).json({ error: 'Token expired. Please login again.' });
+        }
+        if (error.name === "JsonWebTokenError" || error.code?.startsWith('ERR_JWT')) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        if (error.code === 'P2003') {
+            return res.status(400).json({ error: 'Cannot delete user due to foreign key constraints.' });
+        }
+        if (error.code === 'P2025') {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(500).json({ error: 'Failed to delete account' });
+    }
+});
+
+// Delete account alias used by frontend
+routes.delete('/users/profile', async (req, res) => {
+    if (!req.headers.authorization) {
+        return res.status(401).json({ error: 'Authorization header is missing' });
+    }
+
+    const token = req.headers.authorization.split(' ')[1];
+    try {
+        const authResult = await verifyAuthToken(token);
+        const authenticatedUserId = await resolveDatabaseUserId(authResult);
+
+        if (!authenticatedUserId) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        await prisma.booking.deleteMany({
+            where: { userId: authenticatedUserId },
+        });
+
+        await prisma.order.deleteMany({
+            where: { userId: authenticatedUserId },
+        });
+
         await prisma.user.delete({
             where: { id: authenticatedUserId },
         });

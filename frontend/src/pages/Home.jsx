@@ -3,10 +3,12 @@ import Hero from "../sections/Hero";
 import About from "../sections/About";
 import Footer from "../components/Footer";
 import Services from "../sections/Services";
+import Navbar from "../components/Navbar";
 
 function Home() {
   return (
     <>
+      <Navbar />
       <div className="bg-white min-h-screen">
         <section id="home" className="scroll-mt-8">
           <Hero />
