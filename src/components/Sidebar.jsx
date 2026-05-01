@@ -46,7 +46,7 @@ export default function Sidebar({
         </div>
 
         <div
-          className="mb-6 rounded-3xl border border-cyan-100 px-4 py-4 shadow-sm"
+          className="mb-10 rounded-3xl border border-cyan-100 px-4 py-4 shadow-sm"
           style={{
             background: "linear-gradient(90deg, rgba(236,254,255,0.9), #fff)",
           }}
@@ -101,7 +101,7 @@ export default function Sidebar({
           })}
         </nav>
 
-        <div className="mt-4 border-t border-cyan-100 pt-4">
+        <div className="mt-4 border-t border-cyan-100 pt-10">
           {isLoggedIn ? (
             <button
               type="button"
@@ -120,7 +120,34 @@ export default function Sidebar({
                 </span>
               ) : null}
             </button>
-          ) : null}
+          ) : (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent("open-auth", { detail: { mode: "login" } }),
+                  )
+                }
+                className="rounded-md px-3 py-2 text-sm font-medium text-cyan-700 border border-cyan-100 bg-cyan-50 hover:bg-cyan-100"
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent("open-auth", {
+                      detail: { mode: "register" },
+                    }),
+                  )
+                }
+                className="rounded-md px-3 py-2 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700"
+              >
+                Sign Up
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </aside>

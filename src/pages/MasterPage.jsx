@@ -4,6 +4,7 @@ import Properties from "./Properties";
 import Tenants from "./Tenants";
 import Subscription from "./Subscription";
 import Settings from "./Settings";
+import Profile from "./Profile";
 import { useAuth } from "../contexts/authContext";
 import { useClerk } from "@clerk/clerk-react";
 import Sidebar from "../components/Sidebar";
@@ -17,6 +18,7 @@ import {
   PanelLeftOpen,
   Settings2,
   Users,
+  UserCircle,
 } from "lucide-react";
 
 const MasterPage = () => {
@@ -50,6 +52,12 @@ const MasterPage = () => {
         label: "Subscription",
         description: "Billing and plan details",
         icon: CreditCard,
+      },
+      {
+        id: "profile",
+        label: "Profile",
+        description: "Manage your account",
+        icon: UserCircle,
       },
       {
         id: "settings",
@@ -86,6 +94,8 @@ const MasterPage = () => {
         return <Tenants />;
       case "subscription":
         return <Subscription />;
+      case "profile":
+        return <Profile />;
       case "settings":
         return <Settings />;
       default:
@@ -120,6 +130,7 @@ const MasterPage = () => {
           <MasterNavbar
             title={activeSectionMeta.label}
             user={user}
+            isLoggedIn={isLoggedIn}
             onLogout={handleLogout}
           />
           <div className="mb-6 rounded-4xl border border-white/70 bg-white/80 px-5 py-4 shadow-[0_20px_60px_-35px_rgba(8,145,178,0.45)] backdrop-blur-xl">

@@ -31,6 +31,17 @@ function App() {
     setIsAuthOpen(true);
   };
 
+  // Listen for global requests to open the auth popup (e.g. from Sidebar)
+  useEffect(() => {
+    const handler = (e) => {
+      const mode = e?.detail?.mode || "login";
+      openAuthPopup(mode);
+    };
+
+    window.addEventListener("open-auth", handler);
+    return () => window.removeEventListener("open-auth", handler);
+  }, []);
+
   return (
     <>
       <ScrollToHash />

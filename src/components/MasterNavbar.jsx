@@ -1,8 +1,9 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
 
-export default function MasterNavbar({ title, user, onLogout }) {
+export default function MasterNavbar({ title, user, isLoggedIn, onLogout }) {
   const username = typeof user === "object" && user?.name ? user.name : "User";
 
   return (
@@ -43,13 +44,44 @@ export default function MasterNavbar({ title, user, onLogout }) {
               />
             </div>
 
-            <button
-              type="button"
-              onClick={onLogout}
-              className="rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50"
-            >
-              Logout
-            </button>
+            {isLoggedIn ? (
+              <button
+                type="button"
+                onClick={onLogout}
+                className="rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50"
+              >
+                Logout
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("open-auth", {
+                        detail: { mode: "login" },
+                      }),
+                    )
+                  }
+                  className="rounded-lg border border-cyan-100 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700 hover:bg-cyan-100"
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("open-auth", {
+                        detail: { mode: "register" },
+                      }),
+                    )
+                  }
+                  className="rounded-lg bg-cyan-600 px-3 py-2 text-sm font-semibold text-white hover:bg-cyan-700"
+                >
+                  Sign Up
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -60,11 +92,13 @@ export default function MasterNavbar({ title, user, onLogout }) {
 MasterNavbar.propTypes = {
   title: PropTypes.string,
   user: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+  isLoggedIn: PropTypes.bool,
   onLogout: PropTypes.func,
 };
 
 MasterNavbar.defaultProps = {
   title: "Workspace",
   user: "",
+  isLoggedIn: false,
   onLogout: () => {},
 };
