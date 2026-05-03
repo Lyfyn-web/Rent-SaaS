@@ -1,16 +1,66 @@
-# React + Vite
+# Rent SaaS
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Rent SaaS is a full-stack rental management application with a Vite React frontend and an Express/Prisma backend.
 
-Currently, two official plugins are available:
+## Clone
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+git clone https://github.com/Lyfyn-web/Rent-SaaS.git
+cd Rent-SaaS
+```
 
-## React Compiler
+## Install Dependencies
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Install dependencies for both parts of the app:
 
-## Expanding the ESLint configuration
+```bash
+cd frontend
+npm install
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+cd ../backend
+npm install
+```
+
+If you are setting the project up for the first time, make sure the backend environment variables are configured before starting the server.
+
+## Run Locally
+
+Start the backend:
+
+```bash
+cd backend
+npm start
+```
+
+In a separate terminal, start the frontend:
+
+```bash
+cd frontend
+npm run dev
+```
+
+## Project Structure
+
+- `frontend/` contains the React app built with Vite.
+- `backend/` contains the Express API, Prisma setup, and database schema.
+
+## Screenshots
+
+![Rent-Saas Screenshot 1](frontend/public/rentsaas1.png)
+![Rent-Saas Screenshot 2](frontend/public/rentsaas2.png)
+![Rent-Saas Screenshot 3](frontend/public/rentsaas3.png)
+
+## Contributing
+
+Contributions are welcome.
+
+1. Fork the repository.
+2. Create a new branch for your change.
+3. Make your updates and test them locally.
+4. Open a pull request with a clear description of the change.
+
+Please keep changes focused, follow the existing code style, and avoid introducing unrelated edits.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
